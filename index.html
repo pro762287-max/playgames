@@ -1,0 +1,522 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#080b14">
+<title>GamerHub — Free Browser Games</title>
+<link rel="icon" type="image/png" href="gamerhub-icon.png">
+
+<style>
+:root {
+  --bg:#080b14;
+  --panel:#111a2c;
+  --panel2:#1b2942;
+  --text:#f4f7ff;
+  --muted:#a0aec8;
+  --cyan:#48e5ff;
+  --purple:#9a7cff;
+  --green:#52dfa9;
+  --line:#293650;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
+button,input{font:inherit}
+button{cursor:pointer}
+header{position:sticky;top:0;z-index:10;background:#080b14ee;backdrop-filter:blur(15px);border-bottom:1px solid var(--line)}
+.nav{max-width:1450px;margin:auto;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.logo{font-size:25px;font-weight:900;white-space:nowrap}
+.logo span{color:var(--cyan)}
+.search{flex:1}
+.search input{width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:white;outline:none}
+.search input:focus{border-color:var(--cyan)}
+button.primary,button.secondary{border-radius:11px;padding:11px 14px;font-weight:bold}
+.primary{background:linear-gradient(110deg,var(--cyan),var(--purple));border:0;color:#07111c}
+.secondary{background:var(--panel2);border:1px solid var(--line);color:white}
+main{max-width:1450px;margin:auto;padding:22px}
+.hero{padding:35px;border:1px solid #293650;border-radius:24px;background:radial-gradient(ellipse at 85% 10%,#49398a77,transparent 40%),radial-gradient(ellipse at 5% 100%,#007c9170,transparent 40%),var(--panel)}
+.hero h1{font-size:clamp(38px,6vw,64px);margin:0 0 12px;letter-spacing:-2px}
+.hero h1 span{color:var(--cyan)}
+.hero p{color:var(--muted);max-width:650px;line-height:1.7}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:20px 0}
+.stat,.challenge{background:var(--panel);border:1px solid var(--line);padding:16px;border-radius:15px}
+.stat strong{display:block;font-size:25px;margin-bottom:6px}
+.stat span,.muted{color:var(--muted);font-size:12px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:26px 0 14px}
+.section-head h2{margin:0;font-size:23px}
+.challenges{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.challenge p{color:var(--muted);font-size:13px}
+.progress{height:7px;background:#293650;border-radius:10px;overflow:hidden}
+.progress div{height:100%;background:var(--green);transition:width .2s}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:15px 0}
+.filter{background:var(--panel);color:var(--muted);border:1px solid var(--line);padding:9px 13px;border-radius:22px}
+.filter.active{background:var(--cyan);color:#07111c;font-weight:bold}
+.game-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.game-card{min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;transition:transform .15s,border-color .15s}
+.game-card:hover{transform:translateY(-4px);border-color:var(--cyan)}
+.cover{height:125px;display:flex;align-items:center;justify-content:center;font-size:50px;background:linear-gradient(135deg,var(--c1),var(--c2));position:relative}
+.cover small{position:absolute;bottom:8px;left:8px;font-size:10px;background:#0008;padding:5px 7px;border-radius:7px}
+.game-info{padding:12px}
+.game-info h3{font-size:14px;margin:0 0 8px;overflow-wrap:anywhere}
+.game-info p{font-size:11px;color:var(--muted)}
+.play-btn{width:100%;padding:9px;border:0;border-radius:9px;background:var(--panel2);color:white;font-weight:bold}
+.play-btn:hover{background:var(--cyan);color:#07111c}
+.empty{display:none;padding:35px;text-align:center;color:var(--muted)}
+table{width:100%;border-collapse:collapse;margin-top:12px}
+th,td{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:13px}
+th{color:var(--muted)}
+footer{text-align:center;color:var(--muted);padding:30px 15px;font-size:13px}
+
+/* Logo intro: only visible while the site is opening */
+#introScreen{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#080b14;transition:opacity .55s ease,visibility .55s ease}
+#introScreen img{width:170px;height:170px;object-fit:contain;animation:logoGlow 1s infinite alternate}
+#introScreen h1{font-size:43px;margin:17px 0 6px}
+#introScreen h1 span{color:var(--cyan)}
+#introScreen p{color:var(--muted);font-size:12px;letter-spacing:4px}
+.intro-loader{height:4px;width:130px;margin-top:18px;border-radius:9px;background:linear-gradient(90deg,var(--cyan),var(--purple),#ff43c6);animation:loadBar 2.5s ease-in-out}
+#introScreen.hide{opacity:0;visibility:hidden;pointer-events:none}
+@keyframes logoGlow{from{transform:scale(.95);filter:drop-shadow(0 0 4px #48e5ff)}to{transform:scale(1.05);filter:drop-shadow(0 0 20px #9a7cff)}}
+@keyframes loadBar{from{width:0}to{width:130px}}
+@media(prefers-reduced-motion:reduce){#introScreen img,.intro-loader{animation:none}}
+/* Game window */
+.modal{display:none;position:fixed;inset:0;z-index:30;background:#03050bea;overflow:auto;padding:15px}
+.modal.open{display:flex;align-items:center;justify-content:center}
+.game-window{width:min(850px,100%);background:var(--panel);border:1px solid var(--line);border-radius:19px;overflow:hidden}
+.game-top{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:14px 17px;border-bottom:1px solid var(--line)}
+.game-top h2{font-size:18px}
+.game-top button{background:var(--panel2);color:white;border:1px solid var(--line);border-radius:9px;padding:9px}
+.game-content{padding:18px;text-align:center}
+.game-content p{color:var(--muted);line-height:1.5}
+#gameArea{min-height:300px;background:#080d1a;border:1px solid var(--line);border-radius:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:18px;overflow:hidden}
+.big-number{font-size:48px;color:var(--cyan);font-weight:900}
+#targetButton{font-size:22px;min-width:105px;min-height:70px;border:0;border-radius:15px;background:var(--cyan);color:#07111c;font-weight:bold}
+#targetButton:disabled{opacity:.5}
+.game-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:14px}
+#memoryButtons{display:grid;grid-template-columns:repeat(2,95px);gap:10px}
+.memory-button{width:95px;height:75px;border:0;border-radius:12px;background:#324463;color:white;font-size:24px}
+.memory-button.lit{background:var(--cyan);color:#07111c}
+#snakeBoard{display:grid;grid-template-columns:repeat(12,18px);gap:2px}
+.snake-cell{width:18px;height:18px;background:#172238;border-radius:3px}
+.snake-cell.snake{background:var(--green)}
+.snake-cell.food{background:#ff647c}
+#dpad{display:grid;grid-template-columns:repeat(3,45px);gap:4px}
+#dpad button{height:40px;background:var(--panel2);color:white;border:1px solid var(--line);border-radius:8px}
+:fullscreen{background:var(--bg);overflow:auto}
+:fullscreen main{max-width:1600px;width:100%}
+@media(max-width:1100px){.game-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:800px){.game-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.challenges{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:550px){.nav{padding:10px;gap:8px;flex-wrap:wrap}.logo{font-size:21px}.search{order:3;flex-basis:100%}.nav button{padding:9px}.game-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}main{padding:12px}.hero{padding:22px}.cover{height:105px;font-size:40px}.game-info{padding:9px}.game-info h3{font-size:12px}.modal{padding:6px}.game-content{padding:10px}#snakeBoard{grid-template-columns:repeat(12,15px)}.snake-cell{width:15px;height:15px}}
+</style>
+</head>
+<body>
+
+<!-- The logo appears here for 2.5 seconds, then disappears -->
+<div id="introScreen">
+  <img src="gamerhub-icon.png" alt="GamerHub logo">
+  <h1>Gamer<span>Hub</span></h1>
+  <p>PLAY • EXPLORE • ENJOY</p>
+  <div class="intro-loader"></div>
+</div>
+
+<header>
+  <div class="nav">
+    <!-- Text only: no permanent large logo in the header -->
+    <div class="logo">Gamer<span>Hub</span> ✦</div>
+    <div class="search"><input id="search" type="search" placeholder="Search 1,200 games..." aria-label="Search games"></div>
+    <button class="primary" id="randomBtn">🎲 Random</button>
+    <button class="secondary" id="fullscreenBtn">⛶ Full Screen</button>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <h1>Your next <span>game</span><br>starts here.</h1>
+  <p>Explore 1,200 browser-game variations. Play, beat your high scores, complete daily challenges, and discover something new.</p>
+  <div class="hero-actions">
+    <button class="primary" id="exploreBtn">▶ Explore Games</button>
+    <button class="secondary" id="heroRandomBtn">🎲 Surprise Me</button>
+  </div>
+</section>
+
+<section class="stats">
+  <div class="stat"><strong id="totalGames">1,200</strong><span>GAMES IN LIBRARY</span></div>
+  <div class="stat"><strong id="playedCount">0</strong><span>GAMES PLAYED</span></div>
+  <div class="stat"><strong id="bestScore">0</strong><span>BEST SCORE</span></div>
+  <div class="stat"><strong id="totalScore">0</strong><span>TOTAL POINTS</span></div>
+</section>
+
+<section>
+  <div class="section-head"><h2>🏆 Daily Challenges</h2><span class="muted">Saved on this device</span></div>
+  <div class="challenges" id="challenges"></div>
+</section>
+
+<section id="library">
+  <div class="section-head">
+    <h2>🎮 Explore Games</h2>
+    <span class="muted" id="resultCount"></span>
+  </div>
+  <div class="filters" id="filters"></div>
+  <div class="game-grid" id="gameGrid"></div>
+  <div class="empty" id="empty">No games found. Try a different search.</div>
+  <div class="section-head"><h2>🏅 High Scores</h2><button class="secondary" id="resetScores">Reset Scores</button></div>
+  <table>
+    <thead><tr><th>Game</th><th>Best score</th><th>Plays</th></tr></thead>
+    <tbody id="scoreRows"></tbody>
+  </table>
+</section>
+</main>
+
+<footer>GamerHub ✦ Free browser games · Play, explore, enjoy</footer>
+
+<div class="modal" id="gameModal" role="dialog" aria-modal="true">
+  <div class="game-window">
+    <div class="game-top">
+      <h2 id="modalTitle">Game</h2>
+      <button id="closeGame">✕ Close</button>
+    </div>
+    <div class="game-content">
+      <p id="gameInstructions">Press Start to play.</p>
+      <div id="gameArea"></div>
+      <div class="game-actions">
+        <button class="primary" id="startGame">▶ Start / Restart</button>
+        <button class="secondary" id="gameFullScreen">⛶ Full Screen</button>
+      </div>
+      <p class="muted">Use arrow keys or WASD when available. Touch controls are included for Snake.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+const $=id=>document.getElementById(id);
+const categories=["All","Arcade","Puzzle","Reflex","Adventure","Classic","Action"];
+const types=[
+{name:"Tap Rush",category:"Reflex",icon:"⚡",type:"tap"},
+{name:"Neon Snake",category:"Classic",icon:"🐍",type:"snake"},
+{name:"Memory Match",category:"Puzzle",icon:"🧠",type:"memory"},
+{name:"Lucky Target",category:"Arcade",icon:"🎯",type:"target"},
+{name:"Number Sprint",category:"Puzzle",icon:"🔢",type:"number"},
+{name:"Reaction Test",category:"Reflex",icon:"⏱️",type:"reaction"},
+{name:"Dodge Zone",category:"Action",icon:"🛸",type:"dodge"},
+{name:"Color Click",category:"Arcade",icon:"🎨",type:"color"},
+{name:"Quick Math",category:"Puzzle",icon:"➕",type:"math"},
+{name:"Space Clicker",category:"Adventure",icon:"🚀",type:"space"},
+{name:"Pattern Pop",category:"Puzzle",icon:"💠",type:"pattern"},
+{name:"Lucky Roll",category:"Arcade",icon:"🎲",type:"dice"}
+];
+const prefixes=[
+"Neon","Pixel","Turbo","Cosmic","Shadow","Cyber","Mega","Ultra","Hyper","Crystal",
+"Galaxy","Phantom","Blazing","Electric","Mystic","Golden","Frozen","Solar","Lunar","Storm",
+"Quantum","Digital","Primal","Secret","Rapid","Atomic","Rainbow","Midnight","Wild","Epic",
+"Retro","Future","Magic","Rocket","Stealth","Glitch","Dream","Thunder","Velocity","Diamond",
+"Nova","Vortex","Comet","Jungle","Ocean","Desert","Arctic","Volcano","Power","Laser",
+"Gravity","Orbit","Meteor","Fusion","Pulse","Titan","Frost","Inferno","Prism","Echo",
+"Starlight","Nightfall","Daybreak","Emerald","Ruby","Sapphire","Chrome","Plasma","Speed","Champion",
+"Legend","Agent","Monster","Dragon","Ninja","Wizard","Robot","Alien","Pirate","Knight",
+"Ranger","Master","Ultimate","Adventure","Battle","Arena","Survival","Festival","Rocket X","Pixel Pro",
+"Shadow X","Cyber Pro","Hypernova","Galaxy X","Infinity","Blitz","Phantom Pro","Dreamland","Wildfire","Arcade X"
+];
+const palettes=[
+["#0c8eaa","#302a83"],["#633de0","#e13d91"],["#09876b","#143d85"],
+["#bc3c7b","#f18b3a"],["#2464bc","#13b7a5"],["#aa4be5","#2834a3"],
+["#c44b39","#6c2a92"],["#178b9b","#153f67"],["#8050e7","#d04d9d"],["#23633c","#24a6a3"]
+];
+const games=[];
+let idCounter=0;
+for(let p=0;p<100;p++){
+  for(let t=0;t<12;t++){
+    const base=types[t],pal=palettes[(p+t)%palettes.length];
+    games.push({id:idCounter++,title:prefixes[p]+" "+base.name,category:base.category,icon:base.icon,type:base.type,c1:pal[0],c2:pal[1],best:0,plays:0});
+  }
+}
+
+let activeCategory="All",currentGame=null,score=0,roundEnded=true;
+let intervals=[],timeouts=[],snakeState=null,memoryState=null,roundToken=0;
+let stored={};
+
+function loadData(){
+  try{stored=JSON.parse(localStorage.getItem("gamerhub_save")||"{}")}catch(e){stored={}}
+  for(const g of games){
+    const s=stored.scores?.[g.id];
+    if(s){g.best=Number(s.best)||0;g.plays=Number(s.plays)||0}
+  }
+}
+function saveData(){
+  stored.scores={};
+  games.forEach(g=>{if(g.plays||g.best)stored.scores[g.id]={best:g.best,plays:g.plays}});
+  try{localStorage.setItem("gamerhub_save",JSON.stringify(stored))}catch(e){}
+}
+function renderStats(){
+  $("totalGames").textContent=games.length.toLocaleString();
+  $("playedCount").textContent=games.reduce((n,g)=>n+g.plays,0).toLocaleString();
+  $("bestScore").textContent=Math.max(0,...games.map(g=>g.best)).toLocaleString();
+  $("totalScore").textContent=games.reduce((n,g)=>n+g.best,0).toLocaleString();
+}
+function dailyData(){
+  const today=new Date().toDateString();
+  if(stored.challengeDate!==today){
+    stored.challengeDate=today;
+    stored.challengeProgress=[0,0,0];
+    stored.categoriesPlayed=[];
+  }
+  stored.challengeProgress ||= [0,0,0];
+  stored.categoriesPlayed ||= [];
+  return [
+    {title:"Play 3 games",desc:"Finish three rounds.",goal:3},
+    {title:"Score 50 points",desc:"Reach 50 points in one round.",goal:50},
+    {title:"Try 2 categories",desc:"Play games in two categories.",goal:2}
+  ];
+}
+function renderChallenges(){
+  const list=dailyData();
+  $("challenges").innerHTML=list.map((c,i)=>{
+    const v=stored.challengeProgress[i]||0;
+    return `<div class="challenge"><strong>${c.title}</strong><p>${c.desc}</p><div class="progress"><div style="width:${Math.min(100,v/c.goal*100)}%"></div></div><p>${Math.min(v,c.goal)} / ${c.goal} ${v>=c.goal?"✓ Complete":""}</p></div>`;
+  }).join("");
+}
+function renderFilters(){
+  $("filters").innerHTML=categories.map(c=>`<button class="filter ${c===activeCategory?"active":""}" data-cat="${c}">${c}</button>`).join("");
+  $("filters").querySelectorAll("button").forEach(b=>b.onclick=()=>{
+    activeCategory=b.dataset.cat;renderFilters();renderGames();
+  });
+}
+function esc(s){return s.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function renderGames(){
+  const q=$("search").value.trim().toLowerCase();
+  const list=games.filter(g=>(activeCategory==="All"||g.category===activeCategory)&&(!q||(g.title+" "+g.category).toLowerCase().includes(q)));
+  $("resultCount").textContent=`Showing ${list.length.toLocaleString()} of ${games.length.toLocaleString()} games`;
+  $("empty").style.display=list.length?"none":"block";
+  $("gameGrid").innerHTML=list.map(g=>`<article class="game-card"><div class="cover" style="--c1:${g.c1};--c2:${g.c2}">${g.icon}<small>${g.category}</small></div><div class="game-info"><h3>${esc(g.title)}</h3><p>🏆 Best: ${g.best} · ▶ ${g.plays} plays</p><button class="play-btn" data-id="${g.id}">▶ Play</button></div></article>`).join("");
+  $("gameGrid").querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>openGame(Number(b.dataset.id)));
+}
+function renderScores(){
+  const top=games.filter(g=>g.plays||g.best).sort((a,b)=>b.best-a.best).slice(0,10);
+  $("scoreRows").innerHTML=top.length?top.map(g=>`<tr><td>${esc(g.title)}</td><td>${g.best}</td><td>${g.plays}</td></tr>`).join(""):`<tr><td colspan="3">Play a game to start your scoreboard.</td></tr>`;
+}
+function clearTasks(){
+  intervals.forEach(clearInterval);timeouts.forEach(clearTimeout);
+  intervals=[];timeouts=[];window.onkeydown=null;
+}
+function later(fn,ms){const id=setTimeout(fn,ms);timeouts.push(id);return id}
+function every(fn,ms){const id=setInterval(fn,ms);intervals.push(id);return id}
+function openGame(id){
+  currentGame=games.find(g=>g.id===id);
+  if(!currentGame)return;
+  $("modalTitle").textContent=currentGame.icon+" "+currentGame.title;
+  $("gameModal").classList.add("open");
+  startRound();
+}
+function closeGame(){
+  $("gameModal").classList.remove("open");
+  clearTasks();currentGame=null;
+}
+function startRound(){
+  if(!currentGame)return;
+  clearTasks();roundToken++;score=0;roundEnded=false;
+  snakeState=null;memoryState=null;
+  const area=$("gameArea");area.innerHTML="";
+  $("gameInstructions").textContent="Play and earn points!";
+  const starters={tap:startTap,snake:startSnake,memory:startMemory,target:startTarget,number:startNumber,reaction:startReaction,dodge:startDodge,color:startColor,math:startMath,space:startSpace,pattern:startPattern,dice:startDice};
+  (starters[currentGame.type]||startTap)(area);
+}
+function msg(s){$("gameInstructions").textContent=s}
+function scoreDisplay(area){
+  const d=document.createElement("div");d.className="big-number";d.id="liveScore";d.textContent="0";area.appendChild(d);
+}
+function setScore(n){score=Math.max(0,Math.floor(n));const d=$("liveScore");if(d)d.textContent=score}
+function button(area,label,fn){
+  const b=document.createElement("button");b.id="targetButton";b.textContent=label;b.onclick=fn;area.appendChild(b);return b;
+}
+function timer(seconds){
+  let n=seconds;
+  const d=document.createElement("div");d.id="timeLeft";d.className="muted";d.textContent="Time: "+n+"s";$("gameArea").appendChild(d);
+  every(()=>{n--;if(d.isConnected)d.textContent="Time: "+n+"s";if(n<=0)finishRound()},1000);
+}
+function finishRound(){
+  if(roundEnded||!currentGame)return;
+  roundEnded=true;clearTasks();
+  currentGame.plays++;
+  currentGame.best=Math.max(currentGame.best,score);
+  dailyData();
+  stored.challengeProgress[0]=(stored.challengeProgress[0]||0)+1;
+  stored.challengeProgress[1]=Math.max(stored.challengeProgress[1]||0,score);
+  if(!stored.categoriesPlayed.includes(currentGame.category))stored.categoriesPlayed.push(currentGame.category);
+  stored.challengeProgress[2]=Math.min(2,stored.categoriesPlayed.length);
+  saveData();renderStats();renderChallenges();renderScores();renderGames();
+  msg("Round over! Score: "+score+". Press Start / Restart to play again.");
+}
+function startTap(a){
+  msg("Tap as many times as possible in 10 seconds.");scoreDisplay(a);
+  button(a,"TAP!",()=>{if(!roundEnded)setScore(score+1)});timer(10);
+}
+function startTarget(a){
+  msg("Hit the target to earn points for 15 seconds.");scoreDisplay(a);
+  const b=button(a,"🎯 HIT!",()=>{if(!roundEnded){setScore(score+1);b.style.transform=`translate(${Math.random()*90-45}px,${Math.random()*30-15}px)`}});
+  timer(15);
+}
+function startDice(a){
+  msg("Roll the dice to score points!");scoreDisplay(a);
+  button(a,"🎲 ROLL",()=>{if(!roundEnded){const n=1+Math.floor(Math.random()*6);setScore(score+n);msg("You rolled "+n+"!")}});timer(12);
+}
+function startSpace(a){
+  msg("Launch your rocket for points before time runs out.");scoreDisplay(a);
+  button(a,"🚀 LAUNCH",()=>{if(!roundEnded)setScore(score+1+Math.floor(Math.random()*3))});timer(12);
+}
+function startReaction(a){
+  msg("Wait for green, then click as fast as you can.");
+  const b=button(a,"WAIT...",()=>{
+    if(roundEnded)return;
+    if(b.dataset.ready!=="1"){msg("Too early! Wait for green.");return}
+    setScore(Math.max(1,Math.round(1000-(performance.now()-Number(b.dataset.start))/5)));
+    finishRound();
+  });
+  later(()=>{if(roundEnded)return;b.dataset.ready="1";b.dataset.start=String(performance.now());b.textContent="CLICK NOW!";b.style.background="#52dfa9";msg("NOW! Click quickly!")},1000+Math.random()*2500);
+}
+function startNumber(a){
+  msg("Click numbers from 1 to 10 in order.");scoreDisplay(a);
+  const wrap=document.createElement("div");wrap.style.display="grid";wrap.style.gridTemplateColumns="repeat(5,45px)";wrap.style.gap="7px";
+  let next=1;
+  Array.from({length:10},(_,i)=>i+1).sort(()=>Math.random()-.5).forEach(n=>{
+    const b=document.createElement("button");b.className="memory-button";b.style.width="45px";b.style.height="45px";b.textContent=n;
+    b.onclick=()=>{if(roundEnded)return;if(n===next){b.disabled=true;b.style.background="#52dfa9";next++;setScore(score+10);if(next===11)finishRound()}else{b.style.background="#e85d75";later(()=>b.style.background="#324463",250)}};
+    wrap.appendChild(b);
+  });a.appendChild(wrap);timer(20);
+}
+function startMath(a){
+  msg("Solve as many quick math questions as you can.");scoreDisplay(a);
+  const q=document.createElement("div");q.className="big-number";
+  const input=document.createElement("input");input.type="number";input.placeholder="Answer";input.style.padding="12px";input.style.width="130px";
+  const b=document.createElement("button");b.className="primary";b.textContent="Submit";
+  a.append(q,input,b);let answer=0;
+  function question(){const x=1+Math.floor(Math.random()*12),y=1+Math.floor(Math.random()*12),mul=Math.random()<.5;answer=mul?x*y:x+y;q.textContent=`${x} ${mul?"×":"+"} ${y} = ?`;input.value=""}
+  b.onclick=()=>{if(roundEnded)return;setScore(score+(Number(input.value)===answer?10:0));question()};
+  input.onkeydown=e=>{if(e.key==="Enter")b.click()};
+  question();timer(20);
+}
+function startColor(a){
+  msg("Find and tap the green tile. Avoid red tiles.");scoreDisplay(a);
+  const wrap=document.createElement("div");wrap.style.display="grid";wrap.style.gridTemplateColumns="repeat(3,70px)";wrap.style.gap="8px";
+  let good=0;
+  for(let i=0;i<9;i++){
+    const b=document.createElement("button");b.className="memory-button";b.style.width="70px";b.textContent="●";
+    b.onclick=()=>{if(roundEnded)return;setScore(score+(Number(b.dataset.good)?1:-1));choose()};wrap.appendChild(b);
+  }
+  a.appendChild(wrap);
+  function choose(){good=Math.floor(Math.random()*9);[...wrap.children].forEach((b,i)=>{b.dataset.good=i===good?"1":"0";b.style.background=i===good?"#52dfa9":"#26344c"})}
+  choose();every(choose,700);timer(15);
+}
+function startPattern(a){
+  msg("Memorize the sequence, then repeat it.");scoreDisplay(a);
+  const sy=["▲","●","■","◆"],seq=Array.from({length:4},()=>Math.floor(Math.random()*4));
+  const label=document.createElement("div");label.className="big-number";label.style.fontSize="30px";label.textContent=seq.map(i=>sy[i]).join(" ");a.appendChild(label);
+  later(()=>label.textContent="Repeat it below",2000);
+  const wrap=document.createElement("div");wrap.style.display="flex";wrap.style.gap="8px";
+  let pos=0;
+  sy.forEach((s,i)=>{const b=document.createElement("button");b.className="memory-button";b.textContent=s;b.onclick=()=>{if(roundEnded)return;if(i===seq[pos]){pos++;setScore(score+5);if(pos===seq.length)finishRound()}else finishRound()};wrap.appendChild(b)});
+  a.appendChild(wrap);timer(15);
+}
+function startDodge(a){
+  msg("Use ← and → or A/D to dodge falling meteors.");scoreDisplay(a);
+  const track=document.createElement("div");track.style.cssText="width:min(400px,100%);height:150px;position:relative;background:#101b30;border-radius:12px;overflow:hidden";
+  const player=document.createElement("div");player.textContent="🛸";player.style.cssText="position:absolute;bottom:5px;left:45%;font-size:35px";
+  const hazard=document.createElement("div");hazard.textContent="☄️";hazard.style.cssText="position:absolute;top:0;left:20%;font-size:25px";
+  track.append(player,hazard);a.appendChild(track);let x=45,y=0;
+  window.onkeydown=e=>{if(roundEnded)return;if(["ArrowLeft","a","A"].includes(e.key))x=Math.max(0,x-10);if(["ArrowRight","d","D"].includes(e.key))x=Math.min(90,x+10);player.style.left=x+"%"};
+  every(()=>{y+=8;if(y>100){y=0;hazard.style.left=Math.floor(Math.random()*90)+"%";setScore(score+1)}hazard.style.top=y+"%";if(y>75&&Math.abs((parseFloat(hazard.style.left)||0)-x)<12)finishRound()},120);
+  timer(20);
+}
+function startMemory(a){
+  msg("Repeat the glowing sequence.");scoreDisplay(a);
+  const symbols=["🔵","🟣","🟢","🟡"],grid=document.createElement("div");grid.id="memoryButtons";
+  symbols.forEach(s=>{const b=document.createElement("button");b.className="memory-button";b.textContent=s;grid.appendChild(b)});
+  a.appendChild(grid);
+  memoryState={seq:[],input:[],showing:true};
+  const buttons=[...grid.children];
+  function flash(i){buttons[i].classList.add("lit");later(()=>buttons[i].classList.remove("lit"),300)}
+  function next(){
+    if(roundEnded)return;
+    memoryState.seq.push(Math.floor(Math.random()*4));memoryState.input=[];memoryState.showing=true;buttons.forEach(b=>b.disabled=true);
+    memoryState.seq.forEach((v,i)=>later(()=>flash(v),400+i*550));
+    later(()=>{if(roundEnded)return;memoryState.showing=false;buttons.forEach(b=>b.disabled=false);msg("Repeat the sequence!")},400+memoryState.seq.length*550);
+  }
+  buttons.forEach((b,i)=>b.onclick=()=>{
+    if(roundEnded||memoryState.showing)return;
+    flash(i);
+    if(i!==memoryState.seq[memoryState.input.length]){finishRound();return}
+    memoryState.input.push(i);
+    if(memoryState.input.length===memoryState.seq.length){setScore(score+10);later(next,450)}
+  });
+  next();timer(30);
+}
+function startSnake(a){
+  msg("Eat the red food. Use arrow keys, WASD or the on-screen arrows.");
+  const board=document.createElement("div");board.id="snakeBoard";
+  const cells=[];
+  for(let i=0;i<144;i++){const c=document.createElement("div");c.className="snake-cell";cells.push(c);board.appendChild(c)}
+  a.appendChild(board);
+  const pad=document.createElement("div");pad.id="dpad";
+  const layout=[["",""],["↑","up"],["",""],["←","left"],["↓","down"],["→","right"]];
+  layout.forEach(([label,dir])=>{const b=document.createElement("button");b.textContent=label;if(!dir)b.style.visibility="hidden";b.onclick=()=>turn(dir);pad.appendChild(b)});
+  a.appendChild(pad);
+  snakeState={body:[65,64,63],dir:"right",food:Math.floor(Math.random()*144)};
+  function turn(d){if(!snakeState||!d)return;const opposite={up:"down",down:"up",left:"right",right:"left"};if(opposite[d]!==snakeState.dir)snakeState.dir=d}
+  window.onkeydown=e=>{const m={ArrowUp:"up",w:"up",W:"up",ArrowDown:"down",s:"down",S:"down",ArrowLeft:"left",a:"left",A:"left",ArrowRight:"right",d:"right",D:"right"};if(m[e.key]){e.preventDefault();turn(m[e.key])}};
+  function draw(){cells.forEach(c=>c.className="snake-cell");snakeState.body.forEach(n=>cells[n]?.classList.add("snake"));cells[snakeState.food]?.classList.add("food")}
+  every(()=>{
+    if(!snakeState||roundEnded)return;
+    const h=snakeState.body[0];let x=h%12,y=Math.floor(h/12);
+    if(snakeState.dir==="up")y--;if(snakeState.dir==="down")y++;if(snakeState.dir==="left")x--;if(snakeState.dir==="right")x++;
+    if(x<0||x>11||y<0||y>11){finishRound();return}
+    const n=y*12+x;if(snakeState.body.includes(n)){finishRound();return}
+    snakeState.body.unshift(n);
+    if(n===snakeState.food){setScore(score+10);do{snakeState.food=Math.floor(Math.random()*144)}while(snakeState.body.includes(snakeState.food))}
+    else snakeState.body.pop();
+    draw();
+  },220);
+  draw();timer(45);
+}
+
+$("search").addEventListener("input",renderGames);
+$("randomBtn").onclick=()=>openGame(games[Math.floor(Math.random()*games.length)].id);
+$("heroRandomBtn").onclick=()=>openGame(games[Math.floor(Math.random()*games.length)].id);
+$("exploreBtn").onclick=()=>$("library").scrollIntoView({behavior:"smooth"});
+$("startGame").onclick=startRound;
+$("closeGame").onclick=closeGame;
+$("gameModal").addEventListener("click",e=>{if(e.target===$("gameModal"))closeGame()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("gameModal").classList.contains("open"))closeGame()});
+
+async function toggleFullScreen(target){
+  try{
+    if(!document.fullscreenElement)await target.requestFullscreen();
+    else await document.exitFullscreen();
+  }catch(e){alert("Full screen is unavailable. Try pressing F11.")}
+}
+$("fullscreenBtn").onclick=()=>toggleFullScreen(document.documentElement);
+$("gameFullScreen").onclick=()=>toggleFullScreen($("gameModal"));
+document.addEventListener("fullscreenchange",()=>{
+  $("fullscreenBtn").textContent=document.fullscreenElement?"✕ Exit Full Screen":"⛶ Full Screen";
+});
+$("resetScores").onclick=()=>{
+  if(!confirm("Reset all GamerHub scores on this device?"))return;
+  games.forEach(g=>{g.best=0;g.plays=0});
+  stored={challengeDate:new Date().toDateString(),challengeProgress:[0,0,0],categoriesPlayed:[]};
+  saveData();renderStats();renderChallenges();renderScores();renderGames();
+};
+
+/* Show the intro once per page load, then hide it permanently */
+window.addEventListener("load",()=>{
+  setTimeout(()=>{$("introScreen")?.classList.add("hide")},2500);
+});
+
+loadData();
+renderFilters();
+renderGames();
+renderStats();
+renderChallenges();
+renderScores();
+</script>
+</body>
+</html>
